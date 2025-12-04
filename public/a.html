@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Todo API Tester</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #111;
+    color: #eee;
+    padding: 20px;
+  }
+  h2 {
+    color: #00eaff;
+  }
+  .box {
+    background: #222;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    border: 1px solid #444;
+  }
+  input, button, select {
+    padding: 8px;
+    margin: 5px;
+    border-radius: 6px;
+    border: none;
+  }
+  input, select {
+    width: 250px;
+  }
+  button {
+    background: #00eaff;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  label {
+    display: block;
+    margin-top: 8px;
+    font-size: 14px;
+  }
+  #output {
+    white-space: pre;
+    background: #000;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 10px;
+    border: 1px solid #444;
+  }
+</style>
+</head>
+<body>
+
+<h1>Todo API Tester</h1>
+
+<script>
+// Load token when page opens
+let token = localStorage.getItem("token") || "";
+</script>
+
+<!-- SIGNUP -->
+<div class="box">
+  <h2>Signup</h2>
+  <form onsubmit="signup(event)">
+    <label>Name</label>
+    <input id="name" required />
+
+    <label>Username</label>
+    <input id="su-username" required />
+
+    <label>Password</label>
+    <input id="su-password" type="password" required />
+
+    <button type="submit">Signup</button>
+  </form>
+</div>
+
+<!-- SIGNIN -->
+<div class="box">
+  <h2>Signin</h2>
+  <form onsubmit="signin(event)">
+    <label>Username</label>
+    <input id="si-username" required />
+
+    <label>Password</label>
+    <input id="si-password" type="password" required />
+
+    <button type="submit">Signin</button>
+  </form>
+</div>
+
+<!-- USER INFO -->
+<div class="box">
+  <h2>User Info</h2>
+  <button onclick="getUserInfo()">Get Info</button>
+</div>
+
+<!-- CREATE TODO -->
+<div class="box">
+  <h2>Create Todo</h2>
+  <form onsubmit="createTodo(event)">
+    <label>Todo Text</label>
+    <input id="todo-text" required />
+    <button type="submit">Create</button>
+  </form>
+</div>
+
+<!-- GET TODOS -->
+<div class="box">
+  <h2>All Todos</h2>
+  <button onclick="getTodos()">Get Todos</button>
+</div>
+
+<!-- UPDATE TODO -->
+<div class="box">
+  <h2>Update Todo</h2>
+  <form onsubmit="updateTodo(event)">
+    <label>Todo ID</label>
+    <input id="update-id" required />
+
+    <label>New Todo Text</label>
+    <input id="update-text" required />
+
+    <button type="submit">Update</button>
+  </form>
+</div>
+
+<!-- MARK DONE -->
+<div class="box">
+  <h2>Mark Todo Done</h2>
+  <form onsubmit="markDone(event)">
+    <label>Todo ID</label>
+    <input id="done-id" required />
+
+    <label>isDone</label>
+    <select id="done-status">
+      <option value="true">True</option>
+      <option value="false">False</option>
+    </select>
+
+    <button type="submit">Update Done</button>
+  </form>
+</div>
+
+<h2>Output</h2>
+<pre id="output"></pre>
+
+<script>
+function show(data) {
+  document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+}
+
+// ⬇⬇⬇ ALWAYS use token from localStorage
+function getToken() {
+  return localStorage.getItem("token");
+}
+
+// SIGNUP
+async function signup(event) {
+  event.preventDefault();
+
+  const res = await fetch("/signup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: document.getElementById("name").value,
+      username: document.getElementById("su-username").value,
+      password: document.getElementById("su-password").value,
+    })
+  });
+
+  alert("Signup Success!");
+  show(await res.json());
+}
+
+// SIGNIN
+async function signin(event) {
+  event.preventDefault();
+
+  const res = await fetch("/signin", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      username: document.getElementById("si-username").value,
+      password: document.getElementById("si-password").value,
+    })
+  });
+
+  const data = await res.json();
+  
+  if (data.token) {
+    localStorage.setItem("token", data.token);
+    alert("Signin Successful!");
+  }
+
+  show(data);
+}
+
+// USER INFO
+async function getUserInfo() {
+  const res = await fetch("/UserInfo", {
+    method: "GET",
+    headers: { token: getToken() }
+  });
+  show(await res.json());
+}
+
+// CREATE TODO
+async function createTodo(event) {
+  event.preventDefault();
+
+  const res = await fetch("/createtodo", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", token: getToken() },
+    body: JSON.stringify({
+      todo: document.getElementById("todo-text").value
+    })
+  });
+
+  alert("Todo Created!");
+  show(await res.json());
+}
+
+// GET TODOS
+async function getTodos() {
+  const res = await fetch("/all/todo", {
+    method: "GET",
+    headers: { token: getToken() }
+  });
+  show(await res.json());
+}
+
+// UPDATE TODO
+async function updateTodo(event) {
+  event.preventDefault();
+
+  const res = await fetch("/update/todo", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", token: getToken() },
+    body: JSON.stringify({
+      id: document.getElementById("update-id").value,
+      todo: document.getElementById("update-text").value
+    })
+  });
+
+  alert("Todo Updated!");
+  show(await res.json());
+}
+
+// MARK TODO AS DONE
+async function markDone(event) {
+  event.preventDefault();
+
+  const res = await fetch("/isDone", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", token: getToken() },
+    body: JSON.stringify({
+      id: document.getElementById("done-id").value,
+      isDone: document.getElementById("done-status").value === "true"
+    })
+  });
+
+  alert("isDone Updated!");
+  show(await res.json());
+}
+</script>
+
+</body>
+</html>
