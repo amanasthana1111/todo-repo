@@ -12,7 +12,7 @@ It also provides a **complete HTML tester UI** to test all routes easily — sig
 - User Signup  
 - User Signin  
 - JWT Token generation  
-- Middleware-based route protection  
+- Middleware-based route protection   
 
 ### 📌 Todo System  
 Todos are stored as objects:
